@@ -1,5 +1,7 @@
 export const BEM = (block) => (elem, mods) => {
-  let base = `.${block}`;
+  let base = `.${block}`,
+    data,
+    formatter;
 
   if (!elem) {
     return base;
@@ -15,7 +17,10 @@ export const BEM = (block) => (elem, mods) => {
 
   if (elem !== '') {
     bases = elem.split(',').map(elem => {
-      return `.${block}__${elem.trim()}`;
+      elem = elem.trim();
+      data = { block, elem };
+      formatter = template(options.elementFormat);
+      return formatter(data);
     });
   }
 
@@ -25,7 +30,9 @@ export const BEM = (block) => (elem, mods) => {
         return target;
       }
 
-      target += `${value === true ? (`${base}_${key}`) : (`${base}_${key}_${value}`)}`;
+      data = { base, key, value };
+      formatter = value === true ? template(options.modifierFormatTrue) : template(options.modifierFormat);
+      target += formatter(data);
 
       return target;
     }, '') : base;

@@ -5,7 +5,11 @@ const DEFAULT_OPTIONS = {
   component: 'component',
   element: 'elem',
   modifier: 'mod',
-  modifierRegExp: /([\w\-]+)(?:\[([\w\-| ]+)\])?/
+  modifierRegExp: /([\w\-]+)(?:\[([\w\-| ]+)\])?/,
+  blockFormat: '.${block}',
+  elementFormat: '.${block}__${elem}',
+  modifierFormat: '${base}_${key}_${value}',
+  modifierFormatTrue: '${base}_${key}'
 };
 
 export default postcss.plugin('postcss-bike', (options = DEFAULT_OPTIONS) => {
@@ -27,7 +31,7 @@ export default postcss.plugin('postcss-bike', (options = DEFAULT_OPTIONS) => {
       node.metadata.names.forEach(metaName => {
         switch (node.metadata.type) {
           case options.component:
-            selectors.push(node.metadata.bem());
+            selectors.push(node.metadata.bem(null, null, options));
             break;
           case options.modifier:
             let [, modName, modVals = true] = metaName.match(options.modifierRegExp);
@@ -38,21 +42,21 @@ export default postcss.plugin('postcss-bike', (options = DEFAULT_OPTIONS) => {
               node.metadata.mods = { [modName]: modVal };
 
               if (node.parent.metadata.type === options.element) {
-                selectors.push(node.metadata.bem(node.parent.metadata.name, { [modName]: modVal }));
+                selectors.push(node.metadata.bem(node.parent.metadata.name, { [modName]: modVal }, options));
               } else if (node.parent.metadata.type === options.modifier) {
-                selectors.push(node.metadata.bem({ ...node.parent.metadata.mods, [modName]: modVal }));
+                selectors.push(node.metadata.bem({ ...node.parent.metadata.mods, [modName]: modVal }, null, options));
               } else {
-                selectors.push(node.metadata.bem({ [modName]: modVal }));
+                selectors.push(node.metadata.bem({ [modName]: modVal }, null, options));
               }
             });
             break;
           case options.element:
             if (node.parent.metadata.type === options.modifier) {
               node.parent.selectors.forEach(parentSelector => {
-                selectors.push([parentSelector, node.metadata.bem(metaName)].join(' '));
+                selectors.push([parentSelector, node.metadata.bem(metaName, null, options)].join(' '));
               });
             } else {
-              selectors.push(node.metadata.bem(metaName));
+              selectors.push(node.metadata.bem(metaName, null, options));
             }
             break;
         }
