@@ -25,7 +25,7 @@ export const BEM = (block) => (elem, mods) => {
         return target;
       }
 
-      target += `${value === true ? (`${base}_${key}`) : (`${base}_${key}_${value}`)}`;
+      target += `${value === true ? (`${base}--${key}`) : (`${base}--${key}-${value}`)}`;
 
       return target;
     }, '') : base;
